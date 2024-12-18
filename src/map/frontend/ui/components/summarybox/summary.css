@@ -1,0 +1,53 @@
+.leaflet-statistics-summary-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.leaflet-statistics-summary-table-header > th {
+    table-layout: fixed;
+    text-align: left;
+    vertical-align: bottom;
+    //width: 25%;
+    //border-bottom: 1px solid rgba(0,0,0,0.2);
+}
+
+.leaflet-statistics-summary-table-header > .numeric {
+    text-align: right;
+}
+
+.leaflet-statistics-summary-table-row > td {
+    table-layout: fixed;
+    text-align: left;
+}
+
+.leaflet-statistics-summary-table-row > .numeric {
+    text-align: right;
+}
+
+.leaflet-statistics-summary-table th:first-child, .leaflet-statistics-summary-table td:first-child {
+    white-space: nowrap;
+    width: min-content;
+}
+
+.leaflet-statistics-summary-table th:not(:first-child), .leaflet-statistics-summary-table td:not(:first-child) {
+    width: 33%;
+}
+
+.leaflet-statistics-summary-table-row > .firstcol {
+    //border-right: 1px solid rgba(0,0,0,0.2);
+}
+
+.lastrow {
+    //border-bottom: 1px solid rgba(0,0,0,0.2);
+}
+
+.leaflet-statistics-summary-footnotes {
+    margin: 0px;
+    margin-top: 2px;
+}
+
+
+.leaflet-statistics-summary-footnotes p {
+    margin:0px;
+    font-size: 10px;
+}
