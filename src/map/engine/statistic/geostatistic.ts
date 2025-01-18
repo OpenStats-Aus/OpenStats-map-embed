@@ -1,4 +1,3 @@
-import { wait } from '@testing-library/user-event/dist/utils';
 import { OverlayDecorator } from '../overlay/decorator/overlaydecorator';
 
 export class GeoStatistic {
@@ -10,7 +9,6 @@ export class GeoStatistic {
     }
 
     private init() {
-        wait(2000)
         fetch(this.options.dataEndpoint).then(response => response.text()).then(text => {
             this.values = JSON.parse(text);
             this.makeDecorator();

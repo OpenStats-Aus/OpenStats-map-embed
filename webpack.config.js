@@ -1,4 +1,5 @@
 const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   entry: './src/index.ts', // Your entry file
@@ -22,5 +23,18 @@ module.exports = {
       },
     ],
   },
-  mode: 'development', // Set mode to 'production' for optimized build
+  plugins: [
+    new HtmlWebpackPlugin({
+      template: './test/index.html',
+      inject: false,
+    }),
+  ],
+  devServer: {
+    static: [
+      path.join(__dirname, 'dist'),
+      path.join(__dirname, 'test'),
+    ],
+    port: 3000,
+  },
+  mode: 'development',
 };
