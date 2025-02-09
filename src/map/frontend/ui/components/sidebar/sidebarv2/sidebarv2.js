@@ -1,7 +1,7 @@
-import L, { DomUtil } from 'leaflet';
+import L from 'leaflet';
 import './leaflet-sidebar.css'
 
-export class SidebarV4 extends L.Control {
+export class SidebarV2 extends L.Control {
     pane = undefined;
     options = {
         autopan: false,

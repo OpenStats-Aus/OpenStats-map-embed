@@ -4,130 +4,144 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="bundle.js"></script>
 </head>
 
 <body style="margin:0px;">
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="map" style="width: 100dvw; height: 100dvh;"></div>
-    <script src="bundle.js"></script>
 
     <script>
-        startLat = -33.8688;
-        startLng = 151.2093;
-        startZoom = 12;
+        // Initialise leaflet like normal
+        const startLat = -33.8688;
+        const startLng = 151.2093;
+        const startZoom = 12;
 
-        map.setView([startLat, startLng], startZoom + (L.Browser.retina ? -1 : 0), { animate: false, duration: 0 });
+        const map = L.map('map', {
+            preferCanvas: true
+        }).setView([startLat, startLng], startZoom + (L.Browser.retina ? -1 : 0));
+
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            detectRetina: true
+        }).addTo(map);
 
         map.setMaxBounds([[-90, 132 - 180], [90, 132 + 180]]);
         map.setMinZoom(3 + (L.Browser.retina ? -1 : 0));
         map.setMaxZoom(17 + (L.Browser.retina ? -1 : 0));
 
-        map.attributionControl.setPrefix(false);
         map.attributionControl.addAttribution('© <a href="https://openstats.com.au/copyright">OpenStats</a>');
         map.attributionControl.addAttribution('© <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>');
 
-        // create map backend (overlay manager, overlay decorator)
-        const overlayManager = new OverlayManager(map);
-        const overlayDecoratorManager = new OverlayDecoratorManager(map, new OverlayDecorator(-1, feature => {
-            return {
-                fillColor: 'rgb(128, 128, 128)', // grey
-                fillOpacity: 0.3, // 30% opacity
-                color: 'black', // black border
-                opacity: 0.1, // 10% opacity
-                weight: 1, // 1 pixel border width
-                smoothFactor: 0, // don't simplify the geometry
-            };
-        }));
-        const geoStatisticManager = new GeoStatisticManager(map);
-        const summaryDataManager = new SummaryDataManager({
-            endpoint: 'https://openstats.com.au/map-data/summary-data/housing.json'
-        });
+        // specify settings for the choropleth map
 
-        // add overlays
+        // options for the overlays we want to add to the map
+        // this sets out three overlays: 'lga', 'suburb', and 'sa1', each with three levels of detail
+        const overlays = [
+            {
+                id: 'lga',
+                displayName: 'LGA',
+                lods: [{
+                    minZoom: 11,
+                    resolution: 1,
+                    tileEndpoint: 'https://openstats.com.au/map-data/geojson/lga/lod/3/{lat}.{lon}.geojson',
+                    tileListingEndpoint: 'https://openstats.com.au/map-data/geojson/lga/lod/3/files.txt'
+                }, {
+                    minZoom: 7,
+                    resolution: 5,
+                    tileEndpoint: 'https://openstats.com.au/map-data/geojson/lga/lod/2/{lat}.{lon}.geojson',
+                    tileListingEndpoint: 'https://openstats.com.au/map-data/geojson/lga/lod/2/files.txt'
+                }, {
+                    minZoom: 0,
+                    resolution: 10,
+                    tileEndpoint: 'https://openstats.com.au/map-data/geojson/lga/lod/1/{lat}.{lon}.geojson',
+                    tileListingEndpoint: 'https://openstats.com.au/map-data/geojson/lga/lod/1/files.txt'
+                }]
+            },
+            {
+                id: 'suburb',
+                displayName: 'Suburb',
+                lods: [{
+                    minZoom: 11,
+                    resolution: 1,
+                    tileEndpoint: 'https://openstats.com.au/map-data/geojson/suburb/lod/3/{lat}.{lon}.geojson',
+                    tileListingEndpoint: 'https://openstats.com.au/map-data/geojson/suburb/lod/3/files.txt'
+                }, {
+                    minZoom: 7,
+                    resolution: 5,
+                    tileEndpoint: 'https://openstats.com.au/map-data/geojson/suburb/lod/2/{lat}.{lon}.geojson',
+                    tileListingEndpoint: 'https://openstats.com.au/map-data/geojson/suburb/lod/2/files.txt'
+                }, {
+                    minZoom: 0,
+                    resolution: 10,
+                    tileEndpoint: 'https://openstats.com.au/map-data/geojson/suburb/lod/1/{lat}.{lon}.geojson',
+                    tileListingEndpoint: 'https://openstats.com.au/map-data/geojson/suburb/lod/1/files.txt'
+                }]
+            },
+            {
+                id: 'sa1',
+                displayName: 'SA1',
+                lods: [{
+                    minZoom: 11,
+                    resolution: 1,
+                    tileEndpoint: 'https://openstats.com.au/map-data/geojson/sa1/lod/3/{lat}.{lon}.geojson',
+                    tileListingEndpoint: 'https://openstats.com.au/map-data/geojson/sa1/lod/3/files.txt'
+                }, {
+                    minZoom: 7,
+                    resolution: 5,
+                    tileEndpoint: 'https://openstats.com.au/map-data/geojson/sa1/lod/2/{lat}.{lon}.geojson',
+                    tileListingEndpoint: 'https://openstats.com.au/map-data/geojson/sa1/lod/2/files.txt'
+                }, {
+                    minZoom: 0,
+                    resolution: 10,
+                    tileEndpoint: 'https://openstats.com.au/map-data/geojson/sa1/lod/1/{lat}.{lon}.geojson',
+                    tileListingEndpoint: 'https://openstats.com.au/map-data/geojson/sa1/lod/1/files.txt'
+                }]
+            }
+        ];
 
-        overlayManager.addOverlay({
-            id: 'lga',
-            displayName: 'LGA',
-            lods: [{
-                minZoom: 11,
-                resolution: 1,
-                tileEndpoint: 'https://openstats.com.au/map-data/geojson/lga/lod/3/{lat}.{lon}.geojson',
-                tileListingEndpoint: 'https://openstats.com.au/map-data/geojson/lga/lod/3/files.txt'
-            }, {
-                minZoom: 7,
-                resolution: 5,
-                tileEndpoint: 'https://openstats.com.au/map-data/geojson/lga/lod/2/{lat}.{lon}.geojson',
-                tileListingEndpoint: 'https://openstats.com.au/map-data/geojson/lga/lod/2/files.txt'
-            }, {
-                minZoom: 0,
-                resolution: 10,
-                tileEndpoint: 'https://openstats.com.au/map-data/geojson/lga/lod/1/{lat}.{lon}.geojson',
-                tileListingEndpoint: 'https://openstats.com.au/map-data/geojson/lga/lod/1/files.txt'
-            }]
-        });
+        // options for the geo statistics we want to display on our map
+        // this sets out three geo statistics: 'public', and 'private_rental', 'owner_occupied'
+        const geoStatistics = [
+            {
+                dataEndpoint: "https://openstats.com.au/map-data/geostatistics/housing/public.json",
+                displayName: "Public",
+                id: "public"
+            },
+            {
+                dataEndpoint: "https://openstats.com.au/map-data/geostatistics/housing/private_rental.json",
+                displayName: "Private rental",
+                id: "private_rental"
+            },
+            {
+                dataEndpoint: "https://openstats.com.au/map-data/geostatistics/housing/owned.json",
+                displayName: "Owner-occupied",
+                id: "owner_occupied"
+            },
+        ];
 
-        overlayManager.addOverlay({
-            id: 'suburb',
-            displayName: 'Suburb',
-            lods: [{
-                minZoom: 11,
-                resolution: 1,
-                tileEndpoint: 'https://openstats.com.au/map-data/geojson/suburb/lod/3/{lat}.{lon}.geojson',
-                tileListingEndpoint: 'https://openstats.com.au/map-data/geojson/suburb/lod/3/files.txt'
-            }, {
-                minZoom: 7,
-                resolution: 5,
-                tileEndpoint: 'https://openstats.com.au/map-data/geojson/suburb/lod/2/{lat}.{lon}.geojson',
-                tileListingEndpoint: 'https://openstats.com.au/map-data/geojson/suburb/lod/2/files.txt'
-            }, {
-                minZoom: 0,
-                resolution: 10,
-                tileEndpoint: 'https://openstats.com.au/map-data/geojson/suburb/lod/1/{lat}.{lon}.geojson',
-                tileListingEndpoint: 'https://openstats.com.au/map-data/geojson/suburb/lod/1/files.txt'
-            }]
-        });
+        const otherMaps = [
+            {
+                name: 'Crime rates',
+                description: 'Crime rates by suburb and local government area.',
+                urlTemplate: 'https://openstats.com.au/maps/crime/?lat={lat}&lng={lng}&zoom={zoom}',
+                image: 'https://openstats.com.au/images/covers/crime-cover.webp'
+            },
+            {
+                name: 'Socio-economic',
+                description: 'Socio-economic indicators by suburb and local government area.',
+                urlTemplate: 'https://openstats.com.au/maps/socio-economic/?lat={lat}&lng={lng}&zoom={zoom}',
+                image: 'https://openstats.com.au/images/covers/socio-economic-cover.webp'
+            },
+            {
+                name: 'Demographics',
+                description: 'Demographic indicators by suburb and local government area.',
+                urlTemplate: 'https://openstats.com.au/maps/demographic/?lat={lat}&lng={lng}&zoom={zoom}',
+                image: 'https://openstats.com.au/images/covers/demographics-cover.webp'
+            }
+        ];
 
-        overlayManager.addOverlay({
-            id: 'sa1',
-            displayName: 'SA1',
-            lods: [{
-                minZoom: 11,
-                resolution: 1,
-                tileEndpoint: 'https://openstats.com.au/map-data/geojson/sa1/lod/3/{lat}.{lon}.geojson',
-                tileListingEndpoint: 'https://openstats.com.au/map-data/geojson/sa1/lod/3/files.txt'
-            }, {
-                minZoom: 7,
-                resolution: 5,
-                tileEndpoint: 'https://openstats.com.au/map-data/geojson/sa1/lod/2/{lat}.{lon}.geojson',
-                tileListingEndpoint: 'https://openstats.com.au/map-data/geojson/sa1/lod/2/files.txt'
-            }, {
-                minZoom: 0,
-                resolution: 10,
-                tileEndpoint: 'https://openstats.com.au/map-data/geojson/sa1/lod/1/{lat}.{lon}.geojson',
-                tileListingEndpoint: 'https://openstats.com.au/map-data/geojson/sa1/lod/1/files.txt'
-            }]
-        });
-
-        // add statistics
-        geoStatisticManager.addGeoStatistic({
-            dataEndpoint: "https://openstats.com.au/map-data/geostatistics/housing/public.json",
-            displayName: "Public",
-            id: "public"
-        });
-        geoStatisticManager.addGeoStatistic({
-            dataEndpoint: "https://openstats.com.au/map-data/geostatistics/housing/private_rental.json",
-            displayName: "Private rental",
-            id: "private_rental"
-        });
-        geoStatisticManager.addGeoStatistic({
-            dataEndpoint: "https://openstats.com.au/map-data/geostatistics/housing/owned.json",
-            displayName: "Owner-occupied",
-            id: "owner_occupied"
-        });
-
-        // init controls / gui
-
-        // summary box provider
+        // the summary provider function for summary boxes
         const summaryContentFunc = function (summaryData) {
             const numberFormat = Intl.NumberFormat('en-au');
             const container = L.DomUtil.create('div', '');
@@ -193,53 +207,52 @@
             return container;
         }
 
-        // add other maps
-        const otherMapManager = new OtherMapManager(map);
-        otherMapManager.addOtherMap({
-            name: 'Crime rates',
-            description: 'Crime rates by suburb and local government area.',
-            urlTemplate: 'https://openstats.com.au/maps/crime/?lat={lat}&lng={lng}&zoom={zoom}',
-            image: 'https://openstats.com.au/images/covers/crime-cover.webp'
-        });
-        otherMapManager.addOtherMap({
-            name: 'Socio-economic',
-            description: 'Socio-economic indicators by suburb and local government area.',
-            urlTemplate: 'https://openstats.com.au/maps/socio-economic/?lat={lat}&lng={lng}&zoom={zoom}',
-            image: 'https://openstats.com.au/images/covers/socio-economic-cover.webp'
-        });
-        otherMapManager.addOtherMap({
-            name: 'Demographics',
-            description: 'Demographic indicators by suburb and local government area.',
-            urlTemplate: 'https://openstats.com.au/maps/demographic/?lat={lat}&lng={lng}&zoom={zoom}',
-            image: 'https://openstats.com.au/images/covers/demographics-cover.webp'
-        });
+        // define other options for our map
+        const mapOptions = {
+            overlays: overlays,
+            geoStatistics: geoStatistics,
+            summaryContentFunc: summaryContentFunc,
+            summaryDataEndpoint: 'https://openstats.com.au/map-data/summary-data/housing.json',
+            ui: {
+                sidebar: {
+                    enabled: true,
+                    options: {
+                        aboutContent: `
+                            <p>This map of Australia shows the share of public housing, owner-occupied housing, and private rentals by suburb and local government area using data from the 2021 Census.</p>
+                            <p>See the <a href="/stats/housing">statistics page</a> for methodology and sources.</p>
+                        `,
+                        title: "Housing map",
+                        otherMaps: otherMaps
+                    }
+                }
+            },
+            state: {
+                pushHistory: true,
+                restoreFromHistory: true,
+                defaultParameters: {
+                    lat: startLat,
+                    lng: startLng,
+                    zoom: startZoom + (L.Browser.retina ? -1 : 0),
+                    geo: "auto",
+                    stat: "public"
+                }
+            },
+            autoSelectionCriteria: {
+                sa1: {
+                    minZoom: 14
+                },
+                suburb: {
+                    minZoom: 12
+                },
+                lga: {
+                    minZoom: 0
+                }
+            }
+        }
 
         // get us started
-        const mapManager = new UserMapManager(
-            map, overlayManager, overlayDecoratorManager,
-            geoStatisticManager, summaryDataManager, otherMapManager,
-            summaryContentFunc, {
-            lat: startLat,
-            lng: startLng,
-            zoom: startZoom + (L.Browser.retina ? -1 : 0),
-            geo: "auto",
-            stat: "public"
-            }, {
-            sa1: {
-                minZoom: 14
-            },
-            suburb: {
-                minZoom: 12
-            },
-            lga: {
-                minZoom: 0
-            }
-        });
-        mapManager.getUiManager().getSidebar().setAboutContent(`
-            <p>This map of Australia shows the share of public housing, owner-occupied housing, and private rentals by suburb and local government area using data from the 2021 Census.</p>
-            <p>See the <a href="/stats/housing">statistics page</a> for methodology and sources.</p>
-            `);
-        mapManager.getUiManager().getSidebar().setTitle("Housing map");
+        const mapManager = new UserMapManager(map, mapOptions);
+        mapManager.init();
     </script>
 </body>
 

@@ -1,17 +1,22 @@
+import { PathOptions } from 'leaflet';
 import { OverlayDecoratorManager } from '../engine/overlay/decorator/overlaydecoratormanager';
-import { Overlay } from '../engine/overlay/overlay';
+import { Overlay, OverlayOptions } from '../engine/overlay/overlay';
 import { OverlayManager } from '../engine/overlay/overlaymanager';
-import { GeoStatistic } from '../engine/statistic/geostatistic';
+import { GeoStatistic, GeoStatisticOptions } from '../engine/statistic/geostatistic';
 import { GeoStatisticManager } from '../engine/statistic/geostatisticmanager';
 import { SummaryDataManager } from '../engine/summary/summarydatamanager';
-import { AutoGeographySelector } from './autogeographyselector';
+import { AutoGeographySelector, AutoSelectionCriteria } from './autogeographyselector';
 import { FeatureSelector } from './featureselector';
-import { HistoryManager } from './historymanager';
-import { OtherMapManager } from './othermapmanager';
+import { StateManager, StateOptions } from './statetracker';
 import { SummaryProvider } from './summaryprovider';
-import { UiManager } from './ui/uimanager';
+import { UiManager, UiOptions } from './ui/uimanager';
 
 export class UserMapManager {
+    private options: MapOptions;
+    private overlayManager: OverlayManager;
+    private overlayDecoratorManager: OverlayDecoratorManager;
+    private geoStatisticManager: GeoStatisticManager;
+    private summaryDataManager?: SummaryDataManager;
     private selectedOverlay?: Overlay;
     private selectedGeoStatistic?: GeoStatistic;
     private autoGeoSelector?: AutoGeographySelector;
@@ -19,17 +24,26 @@ export class UserMapManager {
     private featureSelector?: FeatureSelector;
     private summaryProvider?: SummaryProvider;
     private uiManager?: UiManager;
-    private historyManager?: HistoryManager;
+    private stateManager?: StateManager;
 
-    constructor(private map: L.Map, private overlayManager: OverlayManager, private overlayDecoratorManager: OverlayDecoratorManager,
-        private geoStatisticManager: GeoStatisticManager, private summaryDataManager: SummaryDataManager, private otherMapManager: OtherMapManager,
-        private summaryContentFunc: (summaryData: any) => HTMLElement, private defaultParameters: any, private autoSelectionCriteria: any
-    ) {
-        this.init();
+    constructor(private map: L.Map, options: MapOptions) {
+        this.options = options;
+        this.overlayManager = new OverlayManager(this.map);
+        this.overlayDecoratorManager = new OverlayDecoratorManager(this.map, this.options.baseStyle);
+        this.geoStatisticManager = new GeoStatisticManager(this.map);
     }
 
-    private init() {
-        this.autoGeoSelector = new AutoGeographySelector(this, this.autoSelectionCriteria);
+    public init() {
+        this.options.overlays.forEach(this.overlayManager.addOverlay, this.overlayManager);
+        this.overlayManager.init();
+
+        this.options.geoStatistics.forEach(this.geoStatisticManager.addGeoStatistic, this.geoStatisticManager);
+
+        this.overlayDecoratorManager.init();
+
+        if (this.options.autoSelectionCriteria) {
+            this.autoGeoSelector = new AutoGeographySelector(this, this.options.autoSelectionCriteria);
+        }
 
         // check if the selected geo statistic is ready and add its decorator when so
         this.map.on('geostatisticready', event => {
@@ -45,14 +59,33 @@ export class UserMapManager {
             }
         });
 
-        this.featureSelector = new FeatureSelector(this);
-        this.summaryProvider = new SummaryProvider(this, this.summaryContentFunc);
+        if (this.options.summaryDataEndpoint) {
+            this.summaryDataManager = new SummaryDataManager(this.options.summaryDataEndpoint)
+        }
 
-        this.uiManager = new UiManager(this.map, this);
+        this.featureSelector = new FeatureSelector(this, this.options.highlightedStyle);
+        
+        if (this.options.summaryContentFunc) {
+            this.summaryProvider = new SummaryProvider(this, this.options.summaryContentFunc);
+        }
+
+        this.uiManager = new UiManager(this.map, this, this.options.ui);
         this.uiManager.init();
         
-        this.historyManager = new HistoryManager(this, this.map, this.defaultParameters);
-        this.historyManager.init();
+        this.stateManager = new StateManager(this, this.map, this.options.state);
+        this.stateManager.init();
+
+        // select any geo statistic and overlay if none are already selected
+        if (!this.selectedGeoStatistic && this.getGeoStatistics().length > 0) {
+            this.selectGeoStatistic(this.getGeoStatistics()[0].getId());
+        }
+        if (!this.selectedOverlay && this.getOverlays().length > 0) {
+            if (this.autoGeoSelector) {
+                this.setAutoSelect(true);
+            } else {
+                this.selectOverlay(this.getOverlays()[0].getId());
+            }
+        }
     }
 
     public getMap() {
@@ -77,10 +110,6 @@ export class UserMapManager {
 
     public getSummaryProvider() {
         return this.summaryProvider;
-    }
-
-    public getOtherMapManager() {
-        return this.otherMapManager;
     }
 
     public getUiManager() {
@@ -151,6 +180,10 @@ export class UserMapManager {
         return this.selectedOverlay;
     }
 
+    public hasAutoSelect() {
+        return this.autoGeoSelector != null;
+    }
+
     public usingAutoSelect() {
         return this.autoGeoSelector && this.autoSelect;
     }
@@ -163,4 +196,16 @@ export class UserMapManager {
         }
     }
 
+}
+
+export interface MapOptions {
+    baseStyle?: (feature: L.GeoJSON, overlay: Overlay) => PathOptions;
+    highlightedStyle?: (feature: L.GeoJSON, overlay: Overlay) => PathOptions;
+    ui: UiOptions;
+    summaryContentFunc?: (summaryData: any) => HTMLElement;
+    overlays: OverlayOptions[];
+    geoStatistics: GeoStatisticOptions[];
+    summaryDataEndpoint: string;
+    state: StateOptions;
+    autoSelectionCriteria: AutoSelectionCriteria;
 }

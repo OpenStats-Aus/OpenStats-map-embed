@@ -7,6 +7,7 @@
     "@testing-library/user-event": "^13.5.0",
     "@types/jest": "^27.5.2",
     "@types/node": "^16.18.101",
+    "color-string": "^2.0.0",
     "css-loader": "^7.1.2",
     "leaflet": "^1.9.4",
     "leaflet-geosearch": "^4.0.0",
@@ -15,7 +16,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "build": "webpack",
+    "build": "webpack --mode=production",
     "start": "webpack serve --open"
   },
   "browserslist": {

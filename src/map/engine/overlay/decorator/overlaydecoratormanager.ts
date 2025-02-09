@@ -1,11 +1,26 @@
+import { PathOptions } from 'leaflet';
 import { Overlay } from '../overlay';
 import { OverlayDecorator } from './overlaydecorator';
 
 export class OverlayDecoratorManager {
+    private baseDecorator: OverlayDecorator;
     private activeDecorators: OverlayDecorator[] = [];
 
-    constructor(private map: L.Map, private baseDecorator?: OverlayDecorator) {
-        map.on('preoverlayfeatureadd', e => this.onPreFeatureAdd(e));
+    constructor(private map: L.Map, baseStyle?: (feature: L.GeoJSON, overlay: Overlay) => PathOptions) {
+        this.baseDecorator = new OverlayDecorator(-1, baseStyle ? baseStyle : () => {
+            return {
+                fillColor: 'rgb(128, 128, 128)', // grey
+                fillOpacity: 0.3, // 30% opacity
+                color: 'black', // black border
+                opacity: 0.1, // 10% border opacity
+                weight: 1, // 1 pixel border width
+                smoothFactor: 0, // don't simplify the geometry
+            };
+        });
+    }
+
+    public init() {
+        this.map.on('preoverlayfeatureadd', e => this.onPreFeatureAdd(e));
     }
 
     public addDecorator(decorator: OverlayDecorator) {

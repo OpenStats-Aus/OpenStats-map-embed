@@ -10,7 +10,7 @@ export class SummaryProvider {
         if (!featureName) {
             return undefined;
         }
-        return this.contentFunction(this.mapManager.getSummaryDataManager().getSummaryData(featureName, overlay));
+        return this.contentFunction(this.mapManager.getSummaryDataManager()?.getSummaryData(featureName, overlay));
     }
 
 }

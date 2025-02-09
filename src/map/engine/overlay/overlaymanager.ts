@@ -6,7 +6,9 @@ export class OverlayManager {
     private overlays: Overlay[] = [];
     private eventListeners: any = {};
 
-    constructor(private map: L.Map) {
+    constructor(private map: L.Map) {}
+
+    public init() {
         this.map.on('moveend', event => this.updateView());
     }
 

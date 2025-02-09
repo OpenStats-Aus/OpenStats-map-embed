@@ -1,10 +1,30 @@
+import { PathOptions } from 'leaflet';
 import { OverlayDecorator } from '../overlay/decorator/overlaydecorator';
+import getTurboColour from '../util/turbocolourmap';
 
 export class GeoStatistic {
+    private styler: (ranking: number) => PathOptions;
     private decorator?: OverlayDecorator;
     private values?: any; // key1: the geography type, key2: the geography id, value: the ranking between 0 and 1
 
     constructor(private map: L.Map, private options: GeoStatisticOptions) {
+        this.styler = options.styler ? options.styler : (ranking) => {
+            // use a subset of the turbo colour map between 0.45 and 0.95
+            // map [0.0, 0.5) to [0.45, 0.625) i.e. green -> yellow
+            // map [0.5, 1.0] to [0.625, 0.95] i.e. yellow -> red
+            var colour;
+            if (ranking < 0.5) {
+                // green -> yellow
+                colour = getTurboColour(ranking * 2 * (0.625 - 0.45) + 0.45)
+            } else {
+                // yellow -> red
+                colour = getTurboColour((ranking - 0.5) * 2 * (0.95 - 0.625) + 0.625)
+            }
+            return {
+                fillColor: colour,
+                fillOpacity: 0.35
+            }
+        }
         this.init();
     }
 
@@ -30,14 +50,7 @@ export class GeoStatistic {
             if (ranking === undefined || isNaN(ranking)) {
                 return {};
             }
-
-            var hue = (1 - ranking) * 120; // between 0 (red) and 120 (green)
-            var lightness = 50 - ranking * 20; // also adjust darkness to make colour blind friendly
-
-            return {
-                fillColor: `hsl(${hue}, 100%, ${lightness}%)`,
-                fillOpacity: 0.35
-            }
+            return this.styler(ranking);
         });
     }
 
@@ -47,6 +60,10 @@ export class GeoStatistic {
 
     public getDecorator() {
         return this.decorator;
+    }
+
+    public getStyler() {
+        return this.styler;
     }
 
     public getId() {
@@ -59,8 +76,9 @@ export class GeoStatistic {
 
 }
 
-export class GeoStatisticOptions {
-
-    constructor(public id: string, public displayName: string, public dataEndpoint: string) {}
-
+export interface GeoStatisticOptions {
+    id: string
+    displayName: string
+    dataEndpoint: string
+    styler?: (ranking: number) => PathOptions;
 }

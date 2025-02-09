@@ -5,7 +5,7 @@ import { UserMapManager } from './usermapmanager';
 export class AutoGeographySelector {
     private enabled: boolean = false;
 
-    constructor(private mapManager: UserMapManager, private selectionCriteria: any) {
+    constructor(private mapManager: UserMapManager, private selectionCriteria: AutoSelectionCriteria) {
         mapManager.getMap().on('zoomend', () => this.update());
     }
 
@@ -40,4 +40,10 @@ export class AutoGeographySelector {
         }
     }
 
+}
+
+export interface AutoSelectionCriteria {
+    [key: string]: {
+        minZoom: number;
+    };
 }

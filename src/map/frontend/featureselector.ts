@@ -1,19 +1,28 @@
-import { LatLng } from 'leaflet';
+import { LatLng, PathOptions } from 'leaflet';
 import { OverlayDecorator } from '../engine/overlay/decorator/overlaydecorator';
 import { Overlay } from '../engine/overlay/overlay';
 import { UserMapManager } from './usermapmanager';
 import { isTouchOnly } from './util/mobileutils';
 
 export class FeatureSelector {
-    private focusedFeature?: L.GeoJSON;
+    private focusedFeature?: L.GeoJSON; // clicked feature
     private focusedFeatureOverlay?: Overlay;
-    private highlightedFeature?: L.GeoJSON;
+    private highlightedFeature?: L.GeoJSON; // moused over feature
     private highlightedFeatureOverlay?: Overlay;
+    private style: (feature: L.GeoJSON, overlay: Overlay) => PathOptions;
     private decorator: OverlayDecorator;
     private pendingClick: boolean = false;
     private cancelClick: boolean = false;
 
-    constructor(private mapManager: UserMapManager) {
+    constructor(private mapManager: UserMapManager, style?: (feature: L.GeoJSON, overlay: Overlay) => PathOptions) {
+        this.style = style ? style : (feature, jos) => {
+            return {
+                color: 'black',
+                opacity: 1,
+                weight: 1.5
+            }
+        };
+
         mapManager.getOverlayManager().onFeature('mouseover', (layer, overlay, event) => {
             if (isTouchOnly()) {
                 return;
@@ -52,11 +61,7 @@ export class FeatureSelector {
             )) {
                 return {};
             }
-            return {
-                color: 'black',
-                opacity: 1,
-                weight: 1.5
-            }
+            return this.style(feature, overlay);
         });
         mapManager.getOverlayDecoratorManager().addDecorator(this.decorator);
     }
@@ -105,6 +110,7 @@ export class FeatureSelector {
         }
     }
 
+    // check if features have the same name (i.e. are different parts of the same administrative region)
     private sameFeature(feature1?: L.GeoJSON, feature2?: L.GeoJSON) {
         if (!feature1 || !feature2) {
             return false;
