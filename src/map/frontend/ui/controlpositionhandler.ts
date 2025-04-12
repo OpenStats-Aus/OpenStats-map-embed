@@ -13,13 +13,17 @@ export class ControlPositionHandler {
     private updateControls() {
         if (window.matchMedia("(min-width: 768px)").matches) {
             // move control buttons to bottom right
-            this.map.zoomControl.setPosition('topleft');
+            if (this.map.zoomControl) {
+                this.map.zoomControl.setPosition('topleft');
+            }
             this.uiManager.getSidebar()?.getHamburgerControl()?.setPosition('topleft');
             this.uiManager.getSearchControl()?.useDesktopPosition();
         } else {
             // move control buttons to top left
             this.uiManager?.getSidebar()?.getHamburgerControl()?.setPosition('bottomright');
-            this.map.zoomControl.setPosition('bottomright');
+            if (this.map.zoomControl) {
+                this.map.zoomControl.setPosition('bottomright');
+            }
             this.uiManager?.getSearchControl()?.useMobilePosition();
         }
     }
