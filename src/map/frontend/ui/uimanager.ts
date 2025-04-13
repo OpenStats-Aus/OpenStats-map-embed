@@ -1,6 +1,7 @@
 import { UserMapManager } from '../usermapmanager';
 import { LegendManager } from './components/legend/legendmanager';
 import { SearchControl } from './components/search/searchcontrol';
+import { SelectControl } from './components/select/selectcontrol';
 import { SidebarOptions, UiSideBar } from './components/sidebar/sidebar';
 import { SummaryBoxManager } from './components/summarybox/summaryboxmanager';
 import { ControlPositionHandler } from './controlpositionhandler';
@@ -18,7 +19,8 @@ export class UiManager {
                 search: {enabled: true},
                 legend: {enabled: true},
                 sidebar: {enabled: true},
-                summaryBox: {enabled: true}
+                summaryBox: {enabled: true},
+                select: {enabled: false}
             },
             ...uiOptions
         };
@@ -40,6 +42,9 @@ export class UiManager {
         if (this.options.legend.enabled) {
             this.legendManager = new LegendManager(this.mapManager, this.map);
             this.legendManager.init();
+        }
+        if (this.options.select.enabled) {
+            new SelectControl(this.mapManager, this.map).init();
         }
 
         new ControlPositionHandler(this.map, this);
@@ -71,6 +76,9 @@ export interface UiOptions {
         enabled: boolean;
     }
     summaryBox: {
+        enabled: boolean;
+    }
+    select: {
         enabled: boolean;
     }
 }

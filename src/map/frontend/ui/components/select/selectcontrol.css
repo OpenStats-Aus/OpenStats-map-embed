@@ -1,0 +1,12 @@
+.leaflet-select {
+    padding: 5px;
+    border-radius: 4px;
+    border: solid 2px rgba(0,0,0,0.2);
+    background: white;
+    background-clip: padding-box;
+    color: black;
+}
+
+.leaflet-select-option {
+    color: black;
+}
