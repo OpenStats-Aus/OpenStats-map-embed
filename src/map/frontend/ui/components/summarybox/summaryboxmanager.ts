@@ -3,21 +3,35 @@ import { UserMapManager } from '../../../usermapmanager';
 import { SummaryBox } from './summarybox';
 
 export class SummaryBoxManager {
+    private options: SummaryBoxOptions;
     private activeSummaryBox?: SummaryBox;
     private focusedSummaryBox?: SummaryBox;
     
-    constructor(private mapManager: UserMapManager) {}
+    constructor(private mapManager: UserMapManager, options?: SummaryBoxOptions) {
+        this.options = {
+            ...{
+                highlightedSummaryBox: {enabled: true},
+                focusedSummaryBox: {enabled: true}
+            },
+            ...options
+        }
+    }
 
     public init() {
-        this.updateSummaryBox();
-        this.mapManager.getMap().on('featurehighlighted', e => this.updateSummaryBox((e as any).clickedLocation));
-        this.mapManager.getMap().on('featurefocused', e => this.updateFocusedSummaryBox((e as any).clickedLocation));
+        if (this.options.highlightedSummaryBox.enabled) {
+            this.updateSummaryBox();
+            this.mapManager.getMap().on('featurehighlighted', e => this.updateSummaryBox((e as any).clickedLocation));
+        }
+        if (this.options.focusedSummaryBox.enabled) {
+            this.updateFocusedSummaryBox();
+            this.mapManager.getMap().on('featurefocused', e => this.updateFocusedSummaryBox((e as any).clickedLocation));
+        }
     }
 
     private updateSummaryBox(clickedLocation?: LatLng) {
         const selectedFeature = this.mapManager.getFeatureSelector()?.getHighlightedFeature();
         const selectedOverlay = this.mapManager.getFeatureSelector()?.getHighlightedFeatureOverlay();
-        
+
 
         if (selectedFeature && selectedOverlay) {
             if (this.activeSummaryBox) {
@@ -38,7 +52,6 @@ export class SummaryBoxManager {
         const selectedFeature = this.mapManager.getFeatureSelector()?.getFocusedFeature();
         const selectedOverlay = this.mapManager.getFeatureSelector()?.getFocusedFeatureOverlay();
         
-
         if (selectedFeature && selectedOverlay) {
             if (this.focusedSummaryBox) {
                 this.focusedSummaryBox.removeFromMap();
@@ -54,4 +67,13 @@ export class SummaryBoxManager {
         }
     }
 
+}
+
+export interface SummaryBoxOptions {
+    highlightedSummaryBox: {
+        enabled: boolean;
+    }
+    focusedSummaryBox: {
+        enabled: boolean;
+    }
 }

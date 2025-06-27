@@ -15,7 +15,11 @@ export class SummaryBox {
 
     public init() {
         var container = L.DomUtil.create('div');
-        if (this.asPopup && this.popupLocation) {
+        if (this.asPopup) {
+            if (!this.popupLocation) {
+                // use the center point for popup if clicked location not provided
+                this.popupLocation = this.feature.getBounds().getCenter();
+            }
             this.popup = new L.Popup(this.popupLocation, {
                 className: 'leaflet-summarybox',
                 content: container,
@@ -33,11 +37,15 @@ export class SummaryBox {
         title.innerHTML = (this.feature.feature as any)['properties']?.['name'];
 
         // add close button in titlebar here
-        
+
         L.DomUtil.create('hr', 'leaflet-summarybox-title-underline', container);
 
         var contentContainer = L.DomUtil.create('div', 'leaflet-summarybox-content-container', container);
-        var content = this.mapManager.getSummaryProvider()?.getSummaryContent(this.feature, this.overlay);
+        var content = this.mapManager.getSummaryProvider()?.getSummaryContent(this.feature, this.overlay, {
+            feature: this.feature,
+            overlay: this.overlay,
+            popup: this.asPopup
+        });
         if (content) {
             contentContainer.appendChild(content);
         }

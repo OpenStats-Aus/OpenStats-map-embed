@@ -3,7 +3,7 @@ import { LegendManager } from './components/legend/legendmanager';
 import { SearchControl } from './components/search/searchcontrol';
 import { SelectControl } from './components/select/selectcontrol';
 import { SidebarOptions, UiSideBar } from './components/sidebar/sidebar';
-import { SummaryBoxManager } from './components/summarybox/summaryboxmanager';
+import { SummaryBoxManager, SummaryBoxOptions } from './components/summarybox/summaryboxmanager';
 import { ControlPositionHandler } from './controlpositionhandler';
 
 export class UiManager {
@@ -32,7 +32,7 @@ export class UiManager {
             this.sidebar.init();
         }
         if (this.options.summaryBox.enabled) {
-            this.summaryBoxManager = new SummaryBoxManager(this.mapManager);
+            this.summaryBoxManager = new SummaryBoxManager(this.mapManager, this.options.summaryBox.options);
             this.summaryBoxManager.init();
         }
         if (this.options.search.enabled) {
@@ -77,6 +77,7 @@ export interface UiOptions {
     }
     summaryBox: {
         enabled: boolean;
+        options?: SummaryBoxOptions;
     }
     select: {
         enabled: boolean;
